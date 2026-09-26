@@ -1,10 +1,20 @@
-
-# local secrets
+# local secrets — only .env.example is committed
 .env
-*.db
+.env.*
+!.env.example
+
+# python
 __pycache__/
 .venv/
+venv/
+
+# node / build output
 node_modules/
 dist/
+
+# uploaded files, recordings, KYC documents
 backend/storage/
-venv
+
+# editor and OS scratch
+.claude/
+.DS_Store

@@ -4,9 +4,8 @@
     ../.venv/bin/python reset_db.py          # asks before touching Postgres
     ../.venv/bin/python reset_db.py --yes    # for scripts
 
-On SQLite this is the same as deleting the file. On Postgres it is not: the
-database is remote and shared, and there is no undo, so a pointed confirmation
-is required unless --yes is passed.
+The database is remote and shared, and there is no undo, so a pointed
+confirmation is required unless --yes is passed.
 """
 import argparse
 import sys
@@ -33,7 +32,7 @@ def main() -> int:
         print("Nothing to drop.")
         return 0
 
-    if DB_BACKEND == "postgresql" and not args.yes:
+    if not args.yes:
         host = safe_db_url().split("@")[-1].split("/")[0]
         print(f"\nThis permanently deletes all {len(tables)} tables on {host}.")
         print("There is no undo.")

@@ -1,20 +1,16 @@
 # Environment configuration
 
-Create a file called **`.env`** and paste the block below, filling in what you need.
-Anything left blank falls back to console logging, so the app still runs with no
-third-party account at all.
+Copy **`.env.example`** to **`.env`** and fill in the values. `DATABASE_URL` is the one
+required setting — the app runs on Postgres (Supabase) only and refuses to start without
+it. Every notification setting left blank falls back to console logging.
 
 **Either location works** — the backend checks both on startup:
 
 - `<repo>/.env` — next to `start.sh`  ← recommended
 - `<repo>/backend/.env`
 
-`.env` is already in `.gitignore` — **never commit it.**
-
-> Two notes on why you have to create this by hand: the environment this was built in
-> blocks writing to any `.env*` path (it protects credential files), so I can neither
-> create nor read it. And **the API reads it once at startup** — after creating or editing
-> `.env` you must restart the backend.
+`.env` is already in `.gitignore` — **never commit it.** The API reads it once at
+startup, so restart the backend after you edit it.
 
 ### Quick check: is it being picked up?
 
@@ -30,17 +26,20 @@ and whether each provider counts as configured. You can also hit
 PUBLIC_BASE_URL=http://localhost:5173
 SUPPORT_EMAIL=support@yourdomain.com
 
-# ────────────────────────────────────────────────────────────── DATABASE ───
-# Leave DATABASE_URL unset and the app uses the local SQLite file
-# (backend/nexus.db). Set it and the app uses Postgres instead — nothing else
-# changes. Paste Supabase's string verbatim; the driver and sslmode are added
-# for you.
-DATABASE_URL=postgresql://postgres:YOUR_REAL_PASSWORD@db.evvuyxuuugixqejegcex.supabase.co:5432/postgres
+# ─────────────────────────────────────────────────── DATABASE (required) ───
+# Supabase dashboard → Connect → Session pooler. Paste the string verbatim;
+# the driver and sslmode are added for you.
+DATABASE_URL=postgresql://postgres.YOUR_PROJECT_REF:YOUR_REAL_PASSWORD@aws-0-YOUR_REGION.pooler.supabase.com:5432/postgres
 
 # If your password contains @ / # ? or other URL-structural characters, use
-# these two instead of DATABASE_URL and the encoding is handled for you:
-# SUPABASE_PROJECT_REF=evvuyxuuugixqejegcex
+# these instead of DATABASE_URL and the encoding is handled for you:
+# SUPABASE_PROJECT_REF=YOUR_PROJECT_REF
 # SUPABASE_DB_PASSWORD=the-password-with-@-and-/-in-it
+# SUPABASE_DB_HOST=aws-0-YOUR_REGION.pooler.supabase.com
+
+# Signing key for login tokens. Required, at least 32 characters
+# (openssl rand -hex 32). The app refuses to start without it.
+JWT_SECRET=
 
 # ─────────────────────────────────────────────────────────────── EMAIL ────
 # MAIL_PROVIDER: smtp | resend | console
@@ -123,21 +122,6 @@ Supabase offers three, and the difference matters:
 
 The app handles all three; you only have to pick the right one for where it runs.
 
-### What happened to the schema that was already there
-
-The project already contained a different 29-table schema for this same product
-(UUID keys, `bookings`, `escrow_ledger`, `evaluations`, `mentor_kyc`, …). It was
-completely empty — 0 rows in every table — and incompatible with this app's models,
-which use integer keys and expect columns that schema did not have.
-
-It was dumped to **[`schema-backup.sql`](schema-backup.sql)** (29 tables, 23 enum types,
-22 indexes, 62 foreign keys) and then dropped so the app could own the `public` schema.
-To bring it back, run that file in the Supabase SQL editor — but note the app cannot
-use both at once, since six table names collide.
-
-Supabase's own `auth`, `storage`, `realtime`, `extensions` and `vault` schemas were
-never touched.
-
 ### Latency: keep the API and the database in the same region
 
 Every query costs a network round trip. From a laptop in India to this project the
@@ -167,9 +151,8 @@ Two things follow:
 - **The schema is created automatically** on first boot, and the 14 mentors + 3 aspirants
   are seeded only if the `users` table is empty — so pointing at a populated database is
   safe and will not duplicate anything.
-- **`./reset-data.sh` now works against Postgres too.** On Postgres it drops every
-  application table and asks you to type `drop` first, because unlike deleting a local file
-  there is no undo.
+- **`./reset-data.sh`** drops every application table and asks you to type `drop` first,
+  because there is no undo. Pass `--yes` to skip the prompt in scripts.
 
 ---
 

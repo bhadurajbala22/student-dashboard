@@ -5,6 +5,5 @@ PyJWT
 sqlalchemy
 email-validator
 python-dotenv
-# Postgres driver — only needed when DATABASE_URL points at Postgres/Supabase.
-# The app runs on SQLite without it.
+# Postgres driver — required; the app runs on Postgres (Supabase) only.
 psycopg[binary]

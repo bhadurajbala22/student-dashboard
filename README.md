@@ -11,6 +11,9 @@ escrow-backed payments that only reach the mentor after the work is delivered.
 
 ## Running it
 
+The app needs a Postgres database (Supabase). Copy `.env.example` to `.env`, set
+`DATABASE_URL` and `JWT_SECRET`, then:
+
 ```bash
 ./start.sh
 ```
@@ -20,7 +23,7 @@ Then open **http://localhost:5173**.
 | Service | URL | What it is |
 |---|---|---|
 | Marketplace | http://localhost:5173 | Vite dev server (proxies `/api` → 8000) |
-| API | http://127.0.0.1:8000 | FastAPI + SQLite |
+| API | http://127.0.0.1:8000 | FastAPI + Postgres (Supabase) |
 | API docs | http://127.0.0.1:8000/docs | Interactive OpenAPI explorer |
 
 Ctrl-C stops both. `./reset-data.sh` wipes the database so the demo data re-seeds fresh.
@@ -167,12 +170,10 @@ dispute window, which is where every guarantee on this platform lives.
 
 - **Backend** — FastAPI, SQLAlchemy 2, JWT (PyJWT), PBKDF2-SHA256 passwords, async
   escrow/SLA/retention sweeper. Tables are created on boot; no migrations needed.
-- **Database** — SQLite by default, so a fresh checkout runs with no account anywhere.
-  Set `DATABASE_URL` in `.env` and it runs on Postgres/Supabase instead, with nothing else
-  to change: the models use no dialect-specific types, and the only two places that care
-  about the difference are the engine options and the DDL types in
-  [`db.py`](backend/app/db.py). `cd backend && ../.venv/bin/python check_db.py --tables`
-  reports which backend you are on. See [ENVIRONMENT.md](ENVIRONMENT.md#connecting-to-supabase).
+- **Database** — Postgres only, hosted on Supabase. Set `DATABASE_URL` in `.env`; the app
+  refuses to start without it. The engine options live in [`db.py`](backend/app/db.py).
+  `cd backend && ../.venv/bin/python check_db.py --tables` verifies the connection.
+  See [ENVIRONMENT.md](ENVIRONMENT.md#connecting-to-supabase).
 - **Frontend** — React 19, React Router 7, Vite 7, Tailwind CSS 4. Zero UI or icon
   dependencies — the component library (`src/components/ui.jsx`), icon set (`icons.jsx`) and
   calendar planner (`WeekPlanner.jsx`) are all hand-rolled.
@@ -243,6 +244,7 @@ frontend/src/
 python3 -m venv .venv
 .venv/bin/pip install -r backend/requirements.txt
 cd frontend && npm install
+cd .. && cp .env.example .env     # then set DATABASE_URL and JWT_SECRET
 ```
 
 Single-port production build (the API serves the built SPA):
@@ -267,5 +269,7 @@ cd ../backend && ../.venv/bin/python -m uvicorn app.main:app --port 8000
   Aadhaar or account number) and documents land in a local folder. A real build needs an
   Aadhaar/PAN verification API, encrypted object storage with signed URLs, and a proper admin
   review queue — the `simulate-review` endpoint is an explicit demo shortcut.
-- `JWT_SECRET` in `backend/app/config.py` is a hardcoded dev value — move it to an env var.
-- SQLite is fine at this scale; point `DATABASE_URL` at Postgres for concurrent traffic.
+- Every credential lives in `.env` (never committed). `DATABASE_URL` and `JWT_SECRET` are
+  required; the app refuses to start without them.
+- Uploaded files (photos, PDFs, KYC documents) are stored on local disk in `backend/storage/`,
+  so they do not survive a redeploy on a container host. Move them to object storage.

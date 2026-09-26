@@ -11,18 +11,20 @@ VAULT_ARCHIVE_DIR = STORAGE_DIR / "vault_archive"
 COPIES_DIR = STORAGE_DIR / "copies"        # student answer PDFs + evaluated returns
 KYC_DIR = STORAGE_DIR / "kyc"              # identity documents
 MEDIA_DIR = STORAGE_DIR / "media"          # profile photos, intro videos
-DB_PATH = BASE_DIR / "nexus.db"
 
 for _d in (STORAGE_DIR, VAULT_DIR, VAULT_ARCHIVE_DIR, COPIES_DIR, KYC_DIR, MEDIA_DIR):
     _d.mkdir(parents=True, exist_ok=True)
 
 
-
 # --- Database -------------------------------------------------------------
-# Set DATABASE_URL in .env to point at Postgres (Supabase, RDS, anything).
-# Leave it unset and the app runs on the local SQLite file, so a fresh
-# checkout still boots with no account anywhere.
-SQLITE_URL = f"sqlite:///{DB_PATH}"
+# The app runs on Postgres (Supabase) only. Set DATABASE_URL in .env, or set
+# SUPABASE_PROJECT_REF + SUPABASE_DB_PASSWORD and the URL is built for you.
+# There is no local fallback: the app refuses to start without a database.
+_MISSING_DB_MESSAGE = (
+    "No database configured. Copy .env.example to .env and set DATABASE_URL to your "
+    "Supabase connection string (dashboard → Connect → Session pooler), or set "
+    "SUPABASE_PROJECT_REF and SUPABASE_DB_PASSWORD. See ENVIRONMENT.md."
+)
 
 
 def _build_supabase_url() -> str:
@@ -50,7 +52,7 @@ def _normalise(url: str) -> str:
     which driver to use, and the connection must be encrypted.
     """
     if not url:
-        return SQLITE_URL
+        raise RuntimeError(_MISSING_DB_MESSAGE)
     if "[YOUR-PASSWORD]" in url or "YOUR-PASSWORD" in url:
         raise RuntimeError(
             "DATABASE_URL still contains the [YOUR-PASSWORD] placeholder. Replace it with "
@@ -64,7 +66,12 @@ def _normalise(url: str) -> str:
     # driver unspecified, which picks psycopg2 — we ship psycopg 3.
     if scheme in ("postgres", "postgresql"):
         scheme = "postgresql+psycopg"
-    if scheme.startswith("postgresql") and "sslmode=" not in (parts.query or ""):
+    if not scheme.startswith("postgresql"):
+        raise RuntimeError(
+            f"DATABASE_URL must be a PostgreSQL connection string (got scheme '{scheme}'). "
+            "The app runs on Postgres/Supabase only."
+        )
+    if "sslmode=" not in (parts.query or ""):
         # Supabase refuses unencrypted connections; be explicit rather than
         # relying on the driver's default.
         query = f"{parts.query}&sslmode=require" if parts.query else "sslmode=require"
@@ -73,7 +80,7 @@ def _normalise(url: str) -> str:
 
 
 DATABASE_URL = _normalise(env("DATABASE_URL") or _build_supabase_url())
-DB_BACKEND = "postgresql" if DATABASE_URL.startswith("postgresql") else "sqlite"
+DB_BACKEND = "postgresql"
 
 
 def safe_db_url(url: str = "") -> str:
@@ -86,7 +93,14 @@ def safe_db_url(url: str = "") -> str:
 
 
 # --- Auth -----------------------------------------------------------------
-JWT_SECRET = "upsc-nexus-dev-secret-change-me-in-production"
+# Signing key for login tokens. Required — there is no default so a secret
+# can never be committed to the repository.
+JWT_SECRET = env("JWT_SECRET")
+if len(JWT_SECRET) < 32:
+    raise RuntimeError(
+        "JWT_SECRET is missing or shorter than 32 characters. Set it in .env "
+        "(generate one with: openssl rand -hex 32). See .env.example."
+    )
 JWT_ALGORITHM = "HS256"
 TOKEN_TTL_HOURS = 24 * 7
 OTP_TTL_MINUTES = 10

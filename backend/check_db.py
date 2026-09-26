@@ -12,7 +12,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from app.config import DATABASE_URL, DB_BACKEND, safe_db_url   # noqa: E402
+from app.config import DB_BACKEND, safe_db_url   # noqa: E402
 from app.envfile import ENV_CANDIDATES, LOADED_ENV_FILES       # noqa: E402
 
 
@@ -30,21 +30,16 @@ def main() -> int:
 
     print(f"backend         : {DB_BACKEND}")
     print(f"dsn             : {safe_db_url()}")
-    if DB_BACKEND == "sqlite":
-        print("\nStill on SQLite. Set DATABASE_URL in .env to use Postgres/Supabase.")
 
     from sqlalchemy import inspect, text            # noqa: E402
     from app.db import engine                        # noqa: E402
 
     try:
         with engine.connect() as conn:
-            if DB_BACKEND == "postgresql":
-                version = conn.execute(text("SHOW server_version")).scalar()
-                who, db = conn.execute(text("SELECT current_user, current_database()")).one()
-                print(f"server          : PostgreSQL {version}")
-                print(f"connected as    : {who} on {db}")
-            else:
-                print(f"server          : SQLite {conn.execute(text('SELECT sqlite_version()')).scalar()}")
+            version = conn.execute(text("SHOW server_version")).scalar()
+            who, db = conn.execute(text("SELECT current_user, current_database()")).one()
+            print(f"server          : PostgreSQL {version}")
+            print(f"connected as    : {who} on {db}")
     except Exception as exc:                         # noqa: BLE001
         print(f"\nCOULD NOT CONNECT: {type(exc).__name__}: {exc}")
         print(_hint(exc))
