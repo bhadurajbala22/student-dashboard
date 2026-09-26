@@ -1,0 +1,270 @@
+@import "tailwindcss";
+
+/* ToppersDeck — navy and gold.
+   Brand palette: #000814 · #001D3D · #003566 · #FFC300 · #FFD60A.
+   The five brand colours are the structure: navy carries type, depth and the
+   dark bands, gold carries every highlight. Surfaces stay paper-light so the
+   screens read clean instead of heavy. A single restrained teal is kept for
+   success states, because navy and gold alone cannot say "delivered". */
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Instrument Serif", ui-serif, Georgia, serif;
+
+  /* navy neutrals — every grey is tinted toward #001D3D */
+  --color-ink-25:  #f8fafd;
+  --color-ink-50:  #eff3f9;
+  --color-ink-100: #e2e9f3;
+  --color-ink-200: #ccd9e8;
+  --color-ink-300: #a6bcd5;
+  --color-ink-400: #7391b2;
+  --color-ink-500: #4c6c8f;
+  --color-ink-600: #2e5077;
+  --color-ink-700: #133f6d;
+  --color-ink-800: #003566;
+  --color-ink-900: #001d3d;
+  --color-ink-950: #000814;
+
+  /* deep blue — primary action (#003566) */
+  --color-nex-50:  #e8f1fa;
+  --color-nex-100: #d0e2f4;
+  --color-nex-200: #a3c5e8;
+  --color-nex-300: #6ea4d7;
+  --color-nex-400: #3e80c0;
+  --color-nex-500: #1a5e9b;
+  --color-nex-600: #003566;
+  --color-nex-700: #002b54;
+  --color-nex-800: #001d3d;
+  --color-nex-900: #001428;
+  --color-nex-950: #000814;
+
+  /* mikado yellow / gold (#FFC300, #FFD60A) */
+  --color-gold-50:  #fffbe8;
+  --color-gold-100: #fff5c6;
+  --color-gold-200: #ffea8c;
+  --color-gold-300: #ffd60a;
+  --color-gold-400: #ffc300;
+  --color-gold-500: #dfa800;
+  --color-gold-600: #b88500;
+  --color-gold-700: #8a6400;
+  --color-gold-800: #5e4400;
+  --color-gold-900: #3d2c00;
+
+  /* teal — success only, tuned to sit beside navy */
+  --color-mint-50:  #e9f7f4;
+  --color-mint-100: #cdece6;
+  --color-mint-200: #9bd8cd;
+  --color-mint-300: #63bdae;
+  --color-mint-400: #37a08e;
+  --color-mint-500: #1f8474;
+  --color-mint-600: #146a5d;
+  --color-mint-700: #10554b;
+}
+
+*, *::before, *::after { -webkit-font-smoothing: antialiased; }
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  background: #eff3f9;
+  color: var(--color-ink-900);
+  letter-spacing: -0.006em;
+}
+
+.serif { font-family: var(--font-display); font-weight: 400; letter-spacing: 0; }
+.tnum { font-variant-numeric: tabular-nums; }
+
+h1, h2, h3, h4 { letter-spacing: -0.028em; }
+
+::-webkit-scrollbar { width: 11px; height: 11px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-300); border-radius: 99px;
+  border: 3px solid transparent; background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--color-nex-400); background-clip: content-box; }
+.no-bar::-webkit-scrollbar { display: none; }
+.no-bar { scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+
+/* ─────────────────────────────────────── responsive foundations ────── */
+
+/* Fluid type: scales continuously from 320px to 1920px instead of jumping at
+   breakpoints, so no resolution is left looking wrong. */
+@utility text-fluid-hero   { font-size: clamp(2.1rem, 1.2rem + 4.6vw, 3.9rem); line-height: 1.04; }
+@utility text-fluid-h2     { font-size: clamp(1.6rem, 1.1rem + 2.4vw, 2.6rem); line-height: 1.1; }
+@utility text-fluid-h3     { font-size: clamp(1.15rem, 1rem + 0.9vw, 1.5rem); line-height: 1.2; }
+@utility text-fluid-body   { font-size: clamp(0.875rem, 0.83rem + 0.22vw, 1rem); }
+
+/* iPhone notch / home-indicator safe areas — needed the moment this is
+   wrapped as an app or installed to a home screen. */
+@utility pb-safe  { padding-bottom: calc(env(safe-area-inset-bottom, 0px)); }
+@utility pt-safe  { padding-top: calc(env(safe-area-inset-top, 0px)); }
+@utility px-safe  {
+  padding-left: calc(env(safe-area-inset-left, 0px));
+  padding-right: calc(env(safe-area-inset-right, 0px));
+}
+/* room for the mobile tab bar so it never covers content */
+@utility pb-tabbar { padding-bottom: calc(4.6rem + env(safe-area-inset-bottom, 0px)); }
+
+/* A 44x44 minimum hit area (Apple HIG / WCAG 2.5.8).
+   Applied only on touch devices, so desktop keeps its tighter density — and
+   it grows the element's real box rather than faking it with a pseudo-element,
+   which browsers do not route clicks to. */
+/* plain CSS, not an @utility — Tailwind rejects an empty utility, and plain
+   rules are never purged, so the class survives the build untouched. */
+@media (hover: none) and (pointer: coarse) {
+  .tap {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* inline links inside a sentence should grow vertically, not become blocks */
+  p > .tap, span > .tap, li > .tap { min-width: 0; }
+}
+
+/* on touch devices, give the calendar grid taller rows so cells are draggable */
+@media (hover: none) and (pointer: coarse) {
+  .planner-cell { height: 2.35rem; }
+}
+
+/* ─────────────────────────────────────────────────────────── utilities */
+@utility surface {
+  background: #fff;
+  border: 1px solid var(--color-ink-200);
+  border-radius: 1.35rem;
+  box-shadow: 0 1px 2px rgb(0 8 20 / .04), 0 12px 34px -26px rgb(0 29 61 / .35);
+}
+
+@utility lift {
+  box-shadow: 0 18px 40px -24px rgb(0 29 61 / .4);
+}
+
+@utility focusable {
+  outline: none;
+  &:focus-visible { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-nex-400); }
+}
+
+/* a thin luminous rule used to open sections */
+@utility redrule {
+  &::before {
+    content: '';
+    display: block;
+    width: 2.25rem;
+    height: 3px;
+    border-radius: 99px;
+    background: var(--color-gold-400);
+    margin-bottom: 1rem;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────── animation */
+@keyframes rise { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+@keyframes fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes slidein { from { opacity: 0; transform: translateX(28px) } to { opacity: 1; transform: none } }
+@keyframes pop { 0% { opacity:0; transform: scale(.96) } 100% { opacity:1; transform: none } }
+@keyframes shimmer { 100% { transform: translateX(100%) } }
+@keyframes breathe {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(255 195 0 / .55) }
+  70% { box-shadow: 0 0 0 9px rgb(255 195 0 / 0) }
+}
+@keyframes marquee { to { transform: translateX(-50%) } }
+@keyframes marquee-y { to { transform: translateY(-50%) } }
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-1deg) }
+  50% { transform: translate3d(0, -10px, 0) rotate(1deg) }
+}
+@keyframes ambient {
+  0%, 100% { transform: scale(1) translate3d(0, 0, 0) }
+  50% { transform: scale(1.08) translate3d(2%, -2%, 0) }
+}
+@keyframes menu-in {
+  from { opacity: 0; transform: translateY(-8px) scale(.985) }
+  to { opacity: 1; transform: none }
+}
+
+/* `backwards`, not `both`, on every transform-based entrance.
+   `both` keeps the last keyframe applied forever, and a filled transform — even
+   the identity matrix these all end on — makes the element a containing block for
+   `position: fixed` descendants. That silently re-anchored the mobile action bars
+   (review room, storefront booking) to the page box instead of the viewport, which
+   pushed them off-screen. `backwards` only pre-applies the first keyframe, so the
+   element is left with no transform once the animation finishes. */
+.a-rise { animation: rise .4s cubic-bezier(.22,.61,.36,1) backwards }
+.a-fade { animation: fade .3s ease backwards }
+.a-slide { animation: slidein .3s cubic-bezier(.22,.61,.36,1) backwards }
+.a-pop { animation: pop .18s cubic-bezier(.22,.61,.36,1) backwards }
+.a-breathe { animation: breathe 2s infinite }
+.a-marquee { animation: marquee 34s linear infinite }
+.a-float { animation: float 7s ease-in-out infinite }
+.a-ambient { animation: ambient 18s ease-in-out infinite }
+.a-menu { animation: menu-in .16s cubic-bezier(.22,.61,.36,1) backwards }
+
+/* Vertical credit-roll used by the hero mentor columns. The track holds the
+   list twice, so translating it half its height loops seamlessly. */
+.a-roll { animation: marquee-y 46s linear infinite }
+.a-roll-slow { animation: marquee-y 64s linear infinite reverse }
+.roll-pause:hover .a-roll,
+.roll-pause:hover .a-roll-slow { animation-play-state: paused }
+
+/* Feathered top/bottom edges so the columns dissolve instead of clipping. */
+.fade-y {
+  mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 9%, #000 91%, transparent);
+}
+
+.skeleton { position: relative; overflow: hidden; background: var(--color-ink-100); }
+.skeleton::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / .8), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+/* ─────────────────────────────────────────────────────────── controls */
+input[type="range"] {
+  -webkit-appearance: none; appearance: none; height: 4px;
+  border-radius: 99px; background: var(--color-ink-200);
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px; border-radius: 99px;
+  background: var(--color-nex-600); border: 3px solid #fff;
+  box-shadow: 0 1px 10px rgb(0 53 102 / .35); cursor: pointer;
+}
+input[type="checkbox"], input[type="radio"] { accent-color: var(--color-nex-600); }
+
+/* ─────────────────────────────────────────── decorative backdrops */
+.dotgrid {
+  background-image: radial-gradient(circle at 1px 1px, rgb(0 53 102 / .18) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+.dotgrid-light {
+  background-image: radial-gradient(circle at 1px 1px, rgb(0 53 102 / .16) 1px, transparent 0);
+  background-size: 22px 22px;
+}
+/* diagonal hairlines over a saturated fill */
+.hatch {
+  background-image: repeating-linear-gradient(135deg,
+    rgb(255 255 255 / .06) 0 1px, transparent 1px 9px);
+}
+
+::selection { background: rgb(255 214 10 / .55); color: var(--color-ink-950); }
+
+
+/* iOS zooms the page when a focused input's font-size is under 16px. Bump the
+   controls on touch devices so tapping a field never zooms the layout. */
+@media (hover: none) and (pointer: coarse) {
+  input, select, textarea { font-size: 16px !important; }
+}
+
+/* respect a user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "name": "ToppersDeck \u2014 Learn. Rise. Lead.",
+  "short_name": "ToppersDeck",
+  "description": "Book verified UPSC faculty for 1-on-1 sessions, answer evaluation and strategy.",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ffffff",
+  "theme_color": "#001d3d",
+  "categories": [
+    "education"
+  ],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Find a mentor",
+      "url": "/app/discover"
+    },
+    {
+      "name": "My bookings",
+      "url": "/app/orders"
+    }
+  ]
+}

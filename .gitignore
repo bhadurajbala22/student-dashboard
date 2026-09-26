@@ -1,0 +1,10 @@
+
+# local secrets
+.env
+*.db
+__pycache__/
+.venv/
+node_modules/
+dist/
+backend/storage/
+venv

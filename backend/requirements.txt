@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+PyJWT
+sqlalchemy
+email-validator
+python-dotenv
+# Postgres driver — only needed when DATABASE_URL points at Postgres/Supabase.
+# The app runs on SQLite without it.
+psycopg[binary]
